@@ -24,12 +24,12 @@ jobs:
 
     - name: Set up SSH Key
       run: |
-        echo "${{ secrets.EC2_SSH_KEY }}" > DOCKER_KEY.pem
+        echo "${{ secrets.EC2_SSH_KEY }}" > NEWKEY.pem
         chmod 600 DOCKER_KEY.pem
 
     - name: Deploy to EC2 and Run Container
       run: |
-        ssh -o StrictHostKeyChecking=no -i DOCKER_KEY.pem ubuntu@ec2-3-80-205-245.compute-1.amazonaws.com << 'EOF'
+        ssh -o StrictHostKeyChecking=no -i NEWKEY.pem ubuntu@ec2-3-80-205-245.compute-1.amazonaws.com << 'EOF'
           docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_PASSWORD }}"
           docker pull tkaushik959/my-app:latest
           docker stop my-app || true
