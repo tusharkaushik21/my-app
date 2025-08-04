@@ -1,8 +1,9 @@
-name: CI/CD to EC2
+name: Deploy to EC2
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   deploy:
@@ -12,17 +13,17 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v3
 
-    - name: Setup SSH Key
+    - name: Restore SSH Private Key
       run: |
         echo "${{ secrets.DOCKER_KEY_B64 }}" | base64 -d > DOCKER_KEY.pem
         chmod 600 DOCKER_KEY.pem
 
-    - name: Deploy to EC2
+    - name: SSH and Deploy
       run: |
         ssh -o StrictHostKeyChecking=no -i DOCKER_KEY.pem ubuntu@ec2-18-208-227-186.compute-1.amazonaws.com << 'EOF'
           docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_PASSWORD }}"
-          docker pull tkaushik959/my-app:latest
+          docker pull your-dockerhub-user/my-app:latest
           docker stop my-app || true
           docker rm my-app || true
-          docker run -d --name my-app -p 80:80 tkaushik959/my-app:latest
+          docker run -d --name my-app -p 80:80 your-dockerhub-user/my-app:latest
         EOF
