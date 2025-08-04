@@ -22,12 +22,12 @@ jobs:
 
       - name: Copy EC2 Key
         run: |
-          echo "${{ secrets.EC2_KEY }}" > key.pem
-          chmod 400 key.pem
+          echo "${{ secrets.EC2_KEY }}" > DOCKER_KEY.pem
+          chmod 400 DOCKER_KEY.pem
 
       - name: SSH and Deploy
         run: |
-          ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i DOCKER_KEY.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
             docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_PASSWORD }}"
             docker pull tkaushik959/my-app:latest
             docker stop my-app || true
