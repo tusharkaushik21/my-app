@@ -3,34 +3,40 @@ name: Deploy to EC2
 on:
   push:
     branches:
-      - main  # or your deployment branch
+      - main  # Trigger deployment on push to main branch
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Code
+    - name: 🧾 Checkout Code
       uses: actions/checkout@v3
 
-    - name: Log in to DockerHub
+    - name: 🔐 Log in to DockerHub
       run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-    - name: Build Docker Image
+    - name: 🛠️ Build Docker Image
       run: docker build -t tkaushik959/my-app:latest .
 
-    - name: Push Docker Image to DockerHub
+    - name: 📤 Push Docker Image to DockerHub
       run: docker push tkaushik959/my-app:latest
 
-    - name: Set up SSH Key
+    - name: 🔑 Prepare SSH Key
       run: |
         echo "${{ secrets.EC2_SSH_KEY }}" > DOCKER_KEY.pem
         chmod 600 DOCKER_KEY.pem
 
-    - name: Deploy to EC2 and Run Container
+    - name: 🚀 Deploy to EC2 and Run Docker Container
+      env:
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       run: |
-        ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i DOCKER_KEY.pem ubuntu@ec2-54-89-93-98.compute-1.amazonaws.com << 'EOF'
-          docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_PASSWORD }}"
+        ssh -o StrictHostKeyChecking=no \
+            -o UserKnownHostsFile=/dev/null \
+            -i DOCKER_KEY.pem \
+            ubuntu@ec2-54-89-93-98.compute-1.amazonaws.com << EOF
+          docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
           docker pull tkaushik959/my-app:latest
           docker stop my-app || true
           docker rm my-app || true
